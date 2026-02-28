@@ -9,6 +9,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 import { logger } from './logger.js';
+import { isDocker } from './environment.js';
 import { getConfigDir, ensureDir, chownToEffectiveUser } from './paths.js';
 import { registerSignalHandler, sendSignal } from './signals.js';
 
@@ -62,11 +63,8 @@ export const DEFAULT_SYNC_CONCURRENCY = 4;
 /** Default remote delete behavior - move to trash for safety */
 export const DEFAULT_REMOTE_DELETE_BEHAVIOR: RemoteDeleteBehavior = 'trash';
 
-/** Whether we're running inside a Docker container */
-const isDocker = process.env.DOCKER === '1';
-
 /** Default dashboard host (0.0.0.0 in Docker for container port forwarding, localhost otherwise) */
-export const DEFAULT_DASHBOARD_HOST = isDocker ? '0.0.0.0' : '127.0.0.1';
+export const DEFAULT_DASHBOARD_HOST = isDocker() ? '0.0.0.0' : '127.0.0.1';
 
 /** Default dashboard port */
 export const DEFAULT_DASHBOARD_PORT = 4242;
