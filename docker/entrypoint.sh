@@ -4,11 +4,17 @@ set -e
 # Ensure persistent and data directories exist
 mkdir -p /config/proton-drive-sync /state/proton-drive-sync /data
 
-# Check if authenticated; if not, start dashboard only so user can auth via exec
-if ! proton-drive-sync status > /dev/null 2>&1; then
-    echo "Not authenticated yet. Starting dashboard for initial setup..."
+# Check if credentials exist; if not, start dashboard only so user can auth via exec
+CRED_FILE="/config/proton-drive-sync/credentials.enc"
+if [ ! -f "$CRED_FILE" ]; then
+    echo "No credentials found at $CRED_FILE"
+    echo "Starting dashboard for initial setup..."
     echo "Run: kubectl exec -it <pod> -n proton-drive-sync -- proton-drive-sync auth"
-    exec proton-drive-sync dashboard --no-open "$@"
+    # Keep the container alive with the dashboard
+    proton-drive-sync dashboard --no-open "$@" || true
+    # If dashboard exits, sleep to prevent crash loop
+    echo "Dashboard exited. Sleeping to prevent crash loop. Please exec into the pod to authenticate."
+    exec sleep infinity
 fi
 
 # Start sync in foreground (no daemon mode)
